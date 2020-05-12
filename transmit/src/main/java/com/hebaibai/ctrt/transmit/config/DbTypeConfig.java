@@ -92,7 +92,8 @@ public class DbTypeConfig implements CrtrConfig {
                         TransmitConfig transmitConfig = getTransmitConfig(one);
                         event.complete(transmitConfig);
                     } catch (Exception e) {
-                        event.fail(e);
+                        log.error("解析json异常: {}", e);
+                        event.fail(e.getMessage());
                     }
                 });
     }
@@ -138,7 +139,10 @@ public class DbTypeConfig implements CrtrConfig {
         Class<? extends Ext> extClass = Exts.get(extCode);
         Ext ext = extClass.newInstance();
         //覆盖原有的property
-        String property = transmitJson.getString("property", "{}");
+        String property = transmitJson.getString("property");
+        if (StringUtils.isBlank(property)) {
+            property = "{}";
+        }
         JsonObject propertyJson = new JsonObject(property);
         transmitJson.put("property", propertyJson);
         ext.init(this.vertx, transmitJson.getMap());
