@@ -285,28 +285,52 @@ REQUEST  	:在转换响应报文时, 请求参数的节点
 
 `http://127.0.0.1:8080/index?uuid=12`
 
+## 使用数据库配置
 
-### 使用数据库配置
-sql
+当配置节点太多的时候管理起来不好管理, 现在可以将配置存放在数据库中.
+
+### sql
 ```mysql
-CREATE TABLE `api_config` (
-  `code` varchar(100) NOT NULL COMMENT '配置编号',
-  `doc` varchar(100) DEFAULT NULL COMMENT '配置说明',
-  `method` varchar(10) NOT NULL COMMENT '请求方式(GET/POST)',
-  `path` varchar(200) NOT NULL COMMENT '请求地址',
-  `request_type` varchar(10) NOT NULL COMMENT '请求参数类型(QUERY/FORM/JSON/TEXT)',
-  `response_type` varchar(10) NOT NULL COMMENT '响应参数类型(QUERY/FORM/JSON/TEXT)',
-  `timeout` int(11) DEFAULT '3000' COMMENT 'api请求超时时间单位ms,默认3000',
-  `ext_code` varchar(50) DEFAULT NULL COMMENT '应用插件编号',
-  `api_url` varchar(200) DEFAULT NULL COMMENT 'api请求地址',
-  `api_method` varchar(10) DEFAULT NULL COMMENT 'api请求方式(GET/POST)',
-  `api_request_type` varchar(10) DEFAULT NULL COMMENT 'api请求参数类型(QUERY/FORM/JSON/TEXT)',
-  `api_response_type` varchar(10) DEFAULT NULL COMMENT 'api响应参数类型(QUERY/FORM/JSON/TEXT)',
-  `request_ftl` text COMMENT 'api请求参数转换模板',
-  `response_ftl` text NOT NULL COMMENT 'api响应参数转换模板',
-  `status` int(11) DEFAULT '1' COMMENT '状态1:可用/0:不可用',
-  PRIMARY KEY (`code`),
-  UNIQUE KEY `api_config_un` (`path`,`method`),
-  KEY `api_config_method_IDX` (`method`,`path`) USING HASH
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+CREATE TABLE `api_config`
+(
+    `code`              varchar(100) NOT NULL COMMENT '配置编号',
+    `doc`               varchar(100) DEFAULT NULL COMMENT '配置说明',
+    `method`            varchar(10)  NOT NULL COMMENT '请求方式(GET/POST)',
+    `path`              varchar(200) NOT NULL COMMENT '请求地址',
+    `request_type`      varchar(10)  NOT NULL COMMENT '请求参数类型(QUERY/FORM/JSON/TEXT)',
+    `response_type`     varchar(10)  NOT NULL COMMENT '响应参数类型(QUERY/FORM/JSON/TEXT)',
+    `timeout`           int(11)      DEFAULT '3000' COMMENT 'api请求超时时间单位ms,默认3000',
+    `ext_code`          varchar(50)  DEFAULT NULL COMMENT '应用插件编号',
+    `api_url`           varchar(200) DEFAULT NULL COMMENT 'api请求地址',
+    `api_method`        varchar(10)  DEFAULT NULL COMMENT 'api请求方式(GET/POST)',
+    `api_request_type`  varchar(10)  DEFAULT NULL COMMENT 'api请求参数类型(QUERY/FORM/JSON/TEXT)',
+    `api_response_type` varchar(10)  DEFAULT NULL COMMENT 'api响应参数类型(QUERY/FORM/JSON/TEXT)',
+    `request_ftl`       text COMMENT 'api请求参数转换模板',
+    `response_ftl`      text         NOT NULL COMMENT 'api响应参数转换模板',
+    `property`          text COMMENT '用户自定义的额外配置,json格式',
+    `status`            int(11)      DEFAULT '1' COMMENT '状态1:可用/0:不可用',
+    PRIMARY KEY (`code`),
+    UNIQUE KEY `api_config_un` (`path`, `method`),
+    KEY `api_config_method_IDX` (`method`, `path`) USING HASH
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+```
+### 修改配置
+配置文件只有这些配置生效,`"dbConfig"=ture`表示开始数据库配置. 每次请求时向数据库查询转换配置
+```json
+{
+  "config": {
+    "port": 9527,
+    "dbConfig": true,
+    "ext": [
+    ],
+    "db": {
+      "host": "127.0.0.1",
+      "port": 3306,
+      "username": "root",
+      "password": "root",
+      "database": "logdb"
+    }
+  }
+}
 ```

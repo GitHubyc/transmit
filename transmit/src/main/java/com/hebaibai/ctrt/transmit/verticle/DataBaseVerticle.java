@@ -28,22 +28,28 @@ public class DataBaseVerticle extends AbstractVerticle {
     /**
      * 插入请求日志
      */
-    public static String EXECUTE_SQL_INSERT = "execute_sql_insert";
+    public static String INSERT_LOG = "insert_log";
 
     /**
      * 更新请求日志
      */
-    public static String EXECUTE_SQL_UPDATE = "execute_sql_update";
+    public static String UPDATE_LOG = "update_log";
 
     /**
      * 获取所有的配置项code
      */
-    public static String EXECUTE_SQL_ALL_CONFIG = "execute_sql_all_config";
+    public static String FIND_ALL_CONFIG = "find_all_config";
+
+    /**
+     * 通过method和path查找配置
+     */
+    public static String FIND_CONFIG_BY_METHOD_AND_PATH = "find_config_by_method_and_path";
 
     private static String[] ADDRESS = {
-            EXECUTE_SQL_INSERT,
-            EXECUTE_SQL_UPDATE,
-            EXECUTE_SQL_ALL_CONFIG
+            INSERT_LOG,
+            UPDATE_LOG,
+            FIND_ALL_CONFIG,
+            FIND_CONFIG_BY_METHOD_AND_PATH
     };
 
     @Setter
@@ -57,9 +63,10 @@ public class DataBaseVerticle extends AbstractVerticle {
                 eventBus.consumer(address, this::log);
             }
         } else {
-            eventBus.consumer(EXECUTE_SQL_INSERT, this::insert);
-            eventBus.consumer(EXECUTE_SQL_UPDATE, this::update);
-            eventBus.consumer(EXECUTE_SQL_ALL_CONFIG, this::allConfig);
+            eventBus.consumer(INSERT_LOG, this::insertLog);
+            eventBus.consumer(UPDATE_LOG, this::updateLog);
+            eventBus.consumer(FIND_ALL_CONFIG, this::findAllConfig);
+            eventBus.consumer(FIND_CONFIG_BY_METHOD_AND_PATH, this::findConfigByMethodAndPath);
         }
     }
 
@@ -80,7 +87,7 @@ public class DataBaseVerticle extends AbstractVerticle {
      *
      * @param jsonMsg
      */
-    public void update(Message<String> jsonMsg) {
+    public void updateLog(Message<String> jsonMsg) {
         JSONObject sqlParams = JSONObject.parseObject(jsonMsg.body());
         String sql = "UPDATE `api_log` SET `receive` = ?, `end_time` = now(), `status` = 1 WHERE `id` = ? ";
         log.debug(sql);
@@ -104,7 +111,7 @@ public class DataBaseVerticle extends AbstractVerticle {
      *
      * @param jsonMsg
      */
-    public void insert(Message<String> jsonMsg) {
+    public void insertLog(Message<String> jsonMsg) {
         JSONObject sqlParams = JSONObject.parseObject(jsonMsg.body());
         String sql = "INSERT INTO `api_log` (`id`, `type_code`, `send_msg`, `create_time`, `status`) VALUES (?, ?, ?, now(), ?)";
         log.debug(sql);
@@ -131,10 +138,35 @@ public class DataBaseVerticle extends AbstractVerticle {
      *
      * @param jsonMsg
      */
-    private void allConfig(Message<JsonArray> jsonMsg) {
+    private void findAllConfig(Message<JsonArray> jsonMsg) {
         String sql = "select * from api_config where status = 1;";
         log.debug(sql);
         mySQLPool.query(sql, res -> {
+            if (res.succeeded()) {
+                RowSet result = res.result();
+                JsonArray jsonArray = toJsonArray(result);
+                jsonMsg.reply(jsonArray);
+            } else {
+                jsonMsg.fail(500, res.cause().toString());
+                res.cause().printStackTrace();
+                log.error("allConfigCode", res.cause());
+            }
+        });
+    }
+
+    /**
+     * 通过method和path查找配置
+     *
+     * @param jsonMsg
+     */
+    private void findConfigByMethodAndPath(Message<String> jsonMsg) {
+        String sql = "select * from api_config where method = ? and path = ? and status = 1;";
+        log.debug(sql);
+        JSONObject sqlParams = JSONObject.parseObject(jsonMsg.body());
+        mySQLPool.preparedQuery(sql, Tuple.of(
+                sqlParams.getString("method"),
+                sqlParams.getString("path")
+        ), res -> {
             if (res.succeeded()) {
                 RowSet result = res.result();
                 JsonArray jsonArray = toJsonArray(result);

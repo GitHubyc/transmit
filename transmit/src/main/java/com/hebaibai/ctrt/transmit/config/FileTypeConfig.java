@@ -6,10 +6,8 @@ import com.hebaibai.ctrt.convert.FreeMarkerFtl;
 import com.hebaibai.ctrt.convert.FreeMarkerUtils;
 import com.hebaibai.ctrt.convert.reader.DataReader;
 import com.hebaibai.ctrt.convert.reader.JsonDataReader;
-import com.hebaibai.ctrt.transmit.DataConfig;
 import com.hebaibai.ctrt.transmit.DataType;
 import com.hebaibai.ctrt.transmit.TransmitConfig;
-import com.hebaibai.ctrt.transmit.config.CrtrConfig;
 import com.hebaibai.ctrt.transmit.util.CrtrUtils;
 import com.hebaibai.ctrt.transmit.util.ext.Ext;
 import com.hebaibai.ctrt.transmit.util.ext.Exts;
@@ -17,7 +15,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 

@@ -162,7 +162,7 @@ public class TransmitVerticle extends AbstractVerticle {
             routerVo.setTransmitConfig(transmitConfig);
             routerVo.setTypeCode(transmitConfig.getCode());
             //保存请求记录
-            eventBus.send(DataBaseVerticle.EXECUTE_SQL_INSERT, routerVo.getInsertJsonStr());
+            eventBus.send(DataBaseVerticle.INSERT_LOG, routerVo.getInsertJsonStr());
             routingContext.put(RouterVo.class.getName(), routerVo);
             routingContext.next();
         });
@@ -240,7 +240,7 @@ public class TransmitVerticle extends AbstractVerticle {
                         //更新body中的值, 设置为接口返回值
                         routerVo.setBody(body);
                         //保存接口返回参数
-                        eventBus.send(DataBaseVerticle.EXECUTE_SQL_UPDATE, routerVo.getUpdateJsonStr());
+                        eventBus.send(DataBaseVerticle.UPDATE_LOG, routerVo.getUpdateJsonStr());
                         routingContext.next();
                     }
                 }
