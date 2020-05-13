@@ -5,11 +5,11 @@
     "ext": [
     ],
     "db": {
-      "host": "27.150.187.31",
+      "host": "127.0.0.1",
+      "database": "logdb",
       "port": 3306,
       "username": "root",
-      "password": "Fz189@!@",
-      "database": "logdb"
+      "password": "root"
     }
   }
 }

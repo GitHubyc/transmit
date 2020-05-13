@@ -119,7 +119,7 @@ public class DbTypeConfig implements CrtrConfig {
         transmitConfig.setReqType(getDataType(transmitJson.getString("request_type")));
         transmitConfig.setResType(getDataType(transmitJson.getString("response_type")));
         //api 配置
-        String url = getUrl(transmitJson.getString("api_url"));
+        String url = transmitJson.getString("api_url");
         //没有配置url时, 认为不需要调用接口
         if (StringUtils.isNotBlank(url)) {
             transmitConfig.setApiPath(url);
