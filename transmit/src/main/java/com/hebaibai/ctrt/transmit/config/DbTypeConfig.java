@@ -143,8 +143,11 @@ public class DbTypeConfig implements CrtrConfig {
         if (StringUtils.isBlank(property)) {
             property = "{}";
         }
+        //将自定义配置混合进transmitJson
         JsonObject propertyJson = new JsonObject(property);
-        transmitJson.put("property", propertyJson);
+        for (String fieldName : propertyJson.fieldNames()) {
+            transmitJson.put(fieldName, propertyJson.getValue(fieldName));
+        }
         ext.init(this.vertx, transmitJson.getMap());
         transmitConfig.setExt(ext);
         return transmitConfig;

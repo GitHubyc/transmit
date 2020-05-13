@@ -6,7 +6,7 @@
 
     <groupId>com.hebaibai</groupId>
     <artifactId>transmit</artifactId>
-    <version>1.3.1-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
 
     <properties>
         <vertx-version>3.8.0</vertx-version>
