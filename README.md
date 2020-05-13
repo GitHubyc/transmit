@@ -141,24 +141,18 @@ sh bin/start.sh
 #### 日志表sql
 
 ```sql
--- auto-generated definition
-create table api_log
+CREATE TABLE `api_log`
 (
-  id          varchar(64) null,
-  type_code   varchar(64) null
-  comment '类型',
-  send_msg    text        null
-  comment '请求内容',
-  receive     text        null
-  comment '接口返回数据',
-  end_time    datetime    null
-  comment '请求耗时',
-  create_time datetime    null
-  comment '请求时间',
-  status      int         null
-  comment '状态1:success, 0:error'
-)
-  comment '接口请求日志';
+    `id`          varchar(64) NOT NULL,
+    `type_code`   varchar(64) DEFAULT NULL COMMENT '类型',
+    `send_msg`    text COMMENT '请求内容',
+    `receive`     text COMMENT '接口返回数据',
+    `end_time`    datetime    DEFAULT NULL COMMENT '请求耗时',
+    `create_time` datetime    DEFAULT NULL COMMENT '请求时间',
+    `status`      int(11)     DEFAULT NULL COMMENT '状态1:success, 0:error',
+    PRIMARY KEY (`id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8 COMMENT ='接口请求日志';
 
 ```
 
