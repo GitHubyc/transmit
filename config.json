@@ -1,30 +1,15 @@
 {
   "config": {
     "port": 9527,
-    "cache": false,
-    "import": [
-      "/home/hjx/work/myprogect/transmit/page-config.json",
-      "/home/hjx/work/myprogect/transmit/api-config.json"
-    ],
+    "dbConfig": true,
     "ext": [
     ],
-    "prop": {
-      "api_url": "http://www.pubmi.cn/",
-      "api_xxx_url": "http://39.99.199.185:9100"
-    }
-  },
-  "api-info": {
-    "doc": "查看配置详情",
-    "request": {
-      "path": "/api",
-      "method": "GET",
-      "request-type": "QUERY",
-      "response-type": "JSON"
-    },
-    "api": {
-      "extCode": "API_INFO",
-      "group": "group",
-      "response-ftl": "transmit/result.ftl"
+    "db": {
+      "host": "27.150.187.31",
+      "port": 3306,
+      "username": "root",
+      "password": "Fz189@!@",
+      "database": "logdb"
     }
   }
 }

@@ -6,10 +6,8 @@ import com.hebaibai.ctrt.convert.FreeMarkerFtl;
 import com.hebaibai.ctrt.convert.FreeMarkerUtils;
 import com.hebaibai.ctrt.convert.reader.DataReader;
 import com.hebaibai.ctrt.convert.reader.JsonDataReader;
-import com.hebaibai.ctrt.transmit.DataConfig;
 import com.hebaibai.ctrt.transmit.DataType;
 import com.hebaibai.ctrt.transmit.TransmitConfig;
-import com.hebaibai.ctrt.transmit.config.CrtrConfig;
 import com.hebaibai.ctrt.transmit.util.CrtrUtils;
 import com.hebaibai.ctrt.transmit.util.ext.Ext;
 import com.hebaibai.ctrt.transmit.util.ext.Exts;
@@ -17,7 +15,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,11 +50,6 @@ public class FileTypeConfig implements CrtrConfig {
      * }
      */
     private boolean cache;
-
-    /**
-     * 数据库配置
-     */
-    private DataConfig dataConfig;
 
     /**
      * 导入的配置
@@ -195,11 +187,6 @@ public class FileTypeConfig implements CrtrConfig {
         }
         for (String extCode : Exts.codes()) {
             log.info("load ext code {}", extCode);
-        }
-        //配置日志数据库
-        if (configJson.containsKey("db")) {
-            DataConfig db = configJson.getObject("db", DataConfig.class);
-            this.dataConfig = db;
         }
     }
 
@@ -380,12 +367,6 @@ public class FileTypeConfig implements CrtrConfig {
     @Override
     public int getPort() {
         return port;
-    }
-
-
-    @Override
-    public DataConfig getDataConfig() {
-        return dataConfig;
     }
 
 }

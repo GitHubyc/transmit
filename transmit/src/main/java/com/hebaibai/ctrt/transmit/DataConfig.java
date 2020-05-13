@@ -5,6 +5,7 @@ import lombok.Data;
 
 /**
  * 数据库配置
+ *
  * @author hjx
  */
 @Data
@@ -16,7 +17,7 @@ public class DataConfig {
     private String password;
     private String database;
     private String charset = "utf-8";
-    private Integer maxPoolSize = 10;
+    private Integer maxPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     private Integer queryTimeout = 5000;
     private Integer connectTimeout = 10000;
 
