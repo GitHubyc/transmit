@@ -7,15 +7,14 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.RowIterator;
-import io.vertx.sqlclient.RowSet;
-import io.vertx.sqlclient.Tuple;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.dbutils.QueryRunner;
 
-import java.util.List;
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 
 /**
  * 没有配置sqlClient时，不做任何处理
@@ -53,12 +52,12 @@ public class DataBaseVerticle extends AbstractVerticle {
     };
 
     @Setter
-    private MySQLPool mySQLPool;
+    private DataSource dataSource;
 
     @Override
     public void start() throws Exception {
         EventBus eventBus = vertx.eventBus();
-        if (mySQLPool == null) {
+        if (dataSource == null) {
             for (String address : ADDRESS) {
                 eventBus.consumer(address, this::log);
             }
@@ -91,19 +90,17 @@ public class DataBaseVerticle extends AbstractVerticle {
         JSONObject sqlParams = JSONObject.parseObject(jsonMsg.body());
         String sql = "UPDATE `api_log` SET `receive` = ?, `end_time` = now(), `status` = 1 WHERE `id` = ? ";
         log.debug(sql);
-        mySQLPool.preparedQuery(sql, Tuple.of(
-                sqlParams.getString("receive"),
-                sqlParams.getString("id")
-        ), event -> {
-            if (event.succeeded()) {
-                RowSet result = event.result();
-                jsonMsg.reply(result.size());
-            } else {
-                jsonMsg.fail(500, event.cause().toString());
-                event.cause().printStackTrace();
-                log.error("update", event.cause());
-            }
-        });
+        try {
+            int update = new QueryRunner(dataSource).update(
+                    sql,
+                    sqlParams.getString("receive"),
+                    sqlParams.getString("id")
+            );
+            jsonMsg.reply(update);
+        } catch (SQLException e) {
+            log.error("update", e);
+            jsonMsg.fail(500, e.getMessage());
+        }
     }
 
     /**
@@ -115,22 +112,19 @@ public class DataBaseVerticle extends AbstractVerticle {
         JSONObject sqlParams = JSONObject.parseObject(jsonMsg.body());
         String sql = "INSERT INTO `api_log` (`id`, `type_code`, `send_msg`, `create_time`, `status`) VALUES (?, ?, ?, now(), ?)";
         log.debug(sql);
-        mySQLPool.preparedQuery(sql, Tuple.of(
-                sqlParams.getString("id"),
-                sqlParams.getString("type_code"),
-                sqlParams.getString("send_msg"),
-                0
-        ), event -> {
-            if (event.succeeded()) {
-                RowSet result = event.result();
-                jsonMsg.reply(result.size());
-            } else {
-                jsonMsg.fail(500, event.cause().toString());
-                event.cause().printStackTrace();
-                log.error("insert", event.cause());
-            }
-        });
-
+        try {
+            int update = new QueryRunner(dataSource).update(
+                    sql,
+                    sqlParams.getString("id"),
+                    sqlParams.getString("type_code"),
+                    sqlParams.getString("send_msg"),
+                    0
+            );
+            jsonMsg.reply(update);
+        } catch (SQLException e) {
+            log.error("insert", e);
+            jsonMsg.fail(500, e.getMessage());
+        }
     }
 
     /**
@@ -141,17 +135,13 @@ public class DataBaseVerticle extends AbstractVerticle {
     private void findAllConfig(Message<JsonArray> jsonMsg) {
         String sql = "select * from api_config where status = 1;";
         log.debug(sql);
-        mySQLPool.query(sql, res -> {
-            if (res.succeeded()) {
-                RowSet result = res.result();
-                JsonArray jsonArray = toJsonArray(result);
-                jsonMsg.reply(jsonArray);
-            } else {
-                jsonMsg.fail(500, res.cause().toString());
-                res.cause().printStackTrace();
-                log.error("allConfigCode", res.cause());
-            }
-        });
+        try {
+            JsonArray jsonArray = new QueryRunner(dataSource).query(sql, resultSet -> toJsonArray(resultSet));
+            jsonMsg.reply(jsonArray);
+        } catch (SQLException e) {
+            log.error("allConfigCode", e);
+            jsonMsg.fail(500, e.getMessage());
+        }
     }
 
     /**
@@ -161,34 +151,31 @@ public class DataBaseVerticle extends AbstractVerticle {
      */
     private void findConfigByMethodAndPath(Message<String> jsonMsg) {
         String sql = "select * from api_config where method = ? and path = ? and status = 1;";
-        log.debug(sql);
         JSONObject sqlParams = JSONObject.parseObject(jsonMsg.body());
-        mySQLPool.preparedQuery(sql, Tuple.of(
-                sqlParams.getString("method"),
-                sqlParams.getString("path")
-        ), res -> {
-            if (res.succeeded()) {
-                RowSet result = res.result();
-                JsonArray jsonArray = toJsonArray(result);
-                jsonMsg.reply(jsonArray);
-            } else {
-                jsonMsg.fail(500, res.cause().toString());
-                res.cause().printStackTrace();
-                log.error("allConfigCode", res.cause());
-            }
-        });
+        log.debug(sql);
+        try {
+            JsonArray jsonArray = new QueryRunner(dataSource).query(
+                    sql,
+                    resultSet -> toJsonArray(resultSet),
+                    sqlParams.getString("method"),
+                    sqlParams.getString("path")
+            );
+            jsonMsg.reply(jsonArray);
+        } catch (SQLException e) {
+            log.error("findConfigByMethodAndPath", e);
+            jsonMsg.fail(500, e.getMessage());
+        }
     }
 
-    JsonArray toJsonArray(RowSet rowSet) {
-        List<String> columnsNames = rowSet.columnsNames();
-        RowIterator iterator = rowSet.iterator();
+    JsonArray toJsonArray(ResultSet resultSet) throws SQLException {
         JsonArray jsonArray = new JsonArray();
-        while (iterator.hasNext()) {
-            Row next = iterator.next();
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        while (resultSet.next()) {
             JsonObject jsonObject = new JsonObject();
-            for (String columnsName : columnsNames) {
-                Object value = next.getValue(columnsName);
-                jsonObject.put(columnsName, value);
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                String columnName = metaData.getColumnName(i);
+                Object object = resultSet.getObject(columnName);
+                jsonObject.put(columnName, object);
             }
             jsonArray.add(jsonObject);
         }

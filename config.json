@@ -5,11 +5,9 @@
     "ext": [
     ],
     "db": {
-      "host": "127.0.0.1",
-      "database": "logdb",
-      "port": 3306,
-      "username": "root",
-      "password": "root"
+      "url": "mysql://rm-8vbg2cqc813i5qahzqo.mysql.zhangbei.rds.aliyuncs.com/bxzjptdb_1?characterEncoding=utf8",
+      "username": "bxzjpt",
+      "password": "Bxzjpt0219"
     }
   }
 }

@@ -6,7 +6,13 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.WebClient;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 
 public class Http {
 
@@ -27,5 +33,13 @@ public class Http {
                         result.cause().printStackTrace();
                     }
                 });
+    }
+
+    @Test
+    public void url() throws MalformedURLException {
+        String url = "////asd////asda//asd///////asd";
+        String[] split = StringUtils.split(url, "/");
+        System.out.println(StringUtils.join(split, "/"));
+
     }
 }
