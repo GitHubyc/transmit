@@ -20,7 +20,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -142,7 +141,7 @@ public class TransmitVerticle extends AbstractVerticle {
         HttpMethod method = request.method();
         routerVo.setMethod(method);
         //去除重复的'/'符号
-        String path = request.path();
+        String path = getPath(request.path());
         routerVo.setPath(path);
         Handler<Promise<TransmitConfig>> handler = crtrConfig.transmitConfig(method, path);
         extWorkerExecutor.executeBlocking(handler, event -> {
@@ -358,4 +357,15 @@ public class TransmitVerticle extends AbstractVerticle {
         return jsonObject.toString();
     }
 
+
+    /**
+     * 去除路径中重复的 /
+     *
+     * @param path
+     * @return
+     */
+    private String getPath(String path) {
+        String[] split = StringUtils.split(path, "/");
+        return "/" + StringUtils.join(split, "/");
+    }
 }

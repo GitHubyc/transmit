@@ -8,12 +8,12 @@ import com.hebaibai.ctrt.transmit.config.FileTypeConfig;
 import com.hebaibai.ctrt.transmit.util.CrtrUtils;
 import com.hebaibai.ctrt.transmit.verticle.DataBaseVerticle;
 import com.hebaibai.ctrt.transmit.verticle.TransmitVerticle;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
-import io.vertx.mysqlclient.MySQLConnectOptions;
-import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.sqlclient.PoolOptions;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +43,15 @@ public class CtrtLancher {
         //数据库部署
         DataBaseVerticle dataBaseVerticle = new DataBaseVerticle();
         if (dataConfig != null) {
-            MySQLConnectOptions connectOptions = MySQLConnectOptions.fromUri(dataConfig.getUrl());
-            connectOptions.set
-            connectOptions.setUser(dataConfig.getUsername());
-            connectOptions.setPassword(dataConfig.getPassword());
-            PoolOptions poolOptions = new PoolOptions().setMaxSize(Runtime.getRuntime().availableProcessors() * 2);
-            MySQLPool mySQLPool = MySQLPool.pool(vertx, connectOptions, poolOptions);
-            dataBaseVerticle.setMySQLPool(mySQLPool);
+            HikariConfig hikariConfig = new HikariConfig();
+            hikariConfig.setDriverClassName("com.mysql.jdbc.Driver");
+            hikariConfig.setJdbcUrl(dataConfig.getUrl());
+            hikariConfig.setUsername(dataConfig.getUsername());
+            hikariConfig.setPassword(dataConfig.getPassword());
+            hikariConfig.setMaximumPoolSize(Runtime.getRuntime().availableProcessors() * 2);
+            hikariConfig.setPoolName("ctrt_dataSource");
+            DataSource dataSource = new HikariDataSource(hikariConfig);
+            dataBaseVerticle.setDataSource(dataSource);
         }
         dataBaseVerticle.init(vertx, this.context);
         vertx.deployVerticle(dataBaseVerticle, res -> {
