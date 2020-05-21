@@ -80,9 +80,7 @@ sh bin/start.sh
     
     数据库配置, 用于保存接口请求日志
     "db": {
-      "host": "127.0.0.1",
-      "database": "dbname",
-      "port": 3306,
+      "url": "jdbc:mysql://127.0.0.1/dbname?characterEncoding=utf-8&useSSL=true",  
       "username": "root",
       "password": "root"
     }
@@ -319,11 +317,9 @@ CREATE TABLE `api_config`
     "ext": [
     ],
     "db": {
-      "host": "127.0.0.1",
-      "port": 3306,
+      "url": "jdbc:mysql://127.0.0.1/dbname?characterEncoding=utf-8&useSSL=true",
       "username": "root",
-      "password": "root",
-      "database": "logdb"
+      "password": "root"
     }
   }
 }
