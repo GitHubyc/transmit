@@ -43,14 +43,11 @@ public class CtrtLancher {
         //数据库部署
         DataBaseVerticle dataBaseVerticle = new DataBaseVerticle();
         if (dataConfig != null) {
-            MySQLConnectOptions connectOptions = new MySQLConnectOptions()
-                    .setPort(dataConfig.getPort())
-                    .setHost(dataConfig.getHost())
-                    .setDatabase(dataConfig.getDatabase())
-                    .setUser(dataConfig.getUsername())
-                    .setPassword(dataConfig.getPassword());
-            PoolOptions poolOptions = new PoolOptions()
-                    .setMaxSize(dataConfig.getMaxPoolSize());
+            MySQLConnectOptions connectOptions = MySQLConnectOptions.fromUri(dataConfig.getUrl());
+            connectOptions.set
+            connectOptions.setUser(dataConfig.getUsername());
+            connectOptions.setPassword(dataConfig.getPassword());
+            PoolOptions poolOptions = new PoolOptions().setMaxSize(Runtime.getRuntime().availableProcessors() * 2);
             MySQLPool mySQLPool = MySQLPool.pool(vertx, connectOptions, poolOptions);
             dataBaseVerticle.setMySQLPool(mySQLPool);
         }

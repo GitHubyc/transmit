@@ -12,6 +12,7 @@ import com.hebaibai.ctrt.transmit.util.ext.Ext;
 import io.vertx.core.*;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
@@ -141,7 +142,7 @@ public class TransmitVerticle extends AbstractVerticle {
         HttpMethod method = request.method();
         routerVo.setMethod(method);
         //去除重复的'/'符号
-        String path = new File(request.path()).getPath();
+        String path = request.path();
         routerVo.setPath(path);
         Handler<Promise<TransmitConfig>> handler = crtrConfig.transmitConfig(method, path);
         extWorkerExecutor.executeBlocking(handler, event -> {
@@ -156,7 +157,13 @@ public class TransmitVerticle extends AbstractVerticle {
                 routingContext.response().end(error("not find param util"), CHARSET_NAME);
                 return;
             }
-            Map<String, Object> requestMap = param.params(routerVo);
+            Map<String, Object> requestMap = null;
+            try {
+                requestMap = param.params(routerVo);
+            } catch (Exception e) {
+                routingContext.response().end(error("request error: " + e.getMessage()), CHARSET_NAME);
+                return;
+            }
             log.info("request {} requestMap:\n{}", routerVo.getUuid(), requestMap);
             routerVo.setRequestMap(requestMap);
             routerVo.setTransmitConfig(transmitConfig);
@@ -288,7 +295,13 @@ public class TransmitVerticle extends AbstractVerticle {
                 return;
             }
             //api响应结果
-            Map<String, Object> responseMap = param.params(routerVo);
+            Map<String, Object> responseMap = null;
+            try {
+                responseMap = param.params(routerVo);
+            } catch (Exception e) {
+                routingContext.response().end(error("response error: " + e.getMessage()), CHARSET_NAME);
+                return;
+            }
             log.info("request {} responseMap:\n{}", routerVo.getUuid(), responseMap);
             resultMap.put(DataReader.ROOT_NAME, responseMap.get(DataReader.ROOT_NAME));
         }
@@ -335,15 +348,14 @@ public class TransmitVerticle extends AbstractVerticle {
     }
 
     private String error(Throwable throwable) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{ \"error_code\": \"0\", \"error_msg\": \"");
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.put("error_code", "0");
         if (throwable == null) {
-            builder.append("Internal Server Error");
+            jsonObject.put("error_msg", "Internal Server Error");
         } else {
-            builder.append(throwable.getMessage());
+            jsonObject.put("error_msg", throwable.getMessage());
         }
-        builder.append("\" }");
-        return builder.toString();
+        return jsonObject.toString();
     }
 
 }
